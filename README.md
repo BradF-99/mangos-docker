@@ -2,7 +2,7 @@
 
 Docker image that builds and runs the CMaNGOS Classic Core. It contains the `mangosd` and `realmd` executables and is designed to be used in a Docker Compose stack. It also includes every module available for the classic core.
 
-# Usage
+## Usage
 
 ### Pre-requisites
 
@@ -11,18 +11,38 @@ Docker image that builds and runs the CMaNGOS Classic Core. It contains the `man
 
 ### Using the Docker Compose stack
 
+#### Using pre-built images
+
+1. Clone the repository to your PC. Do not add `--recurse-submodules` as they are not required for pre-built images.
+```
+$ git clone https://github.com/BradF-99/cmangos-docker
+```
+
+2. Edit the configuration files in the `etc/` folder to your liking.
+
+3. In `sql/03-insert-realm.sh` change the values to suit your needs. More information on the realm flags, timezone and allowed security level [can be found here](https://github.com/cmangos/issues/wiki/realmlist).
+
+4. Start the stack:
+
+```
+$ docker compose -f docker-compose.yml up
+```
+
+#### Using self-built images
+
 1. Clone the repository to your PC. Note the `--recurse-submodules`, as omitting it will not clone CMaNGOS or the modules.
 ```
 $ git clone --recurse-submodules https://github.com/BradF-99/cmangos-docker
 ```
 
-2. Edit the configuration files in the `etc/` folder to your liking. Do not change the database connection strings if you are running the Docker Compose stack.
+2. Edit the configuration files in the `etc/` folder to your liking.
 
-3. Depending on your needs, you can either run the Docker Compose stack that uses pre-built images or a self-built image:
+3. In `sql/03-insert-realm.sh` change the values to suit your needs. More information on the realm flags, timezone and allowed security level [can be found here](https://github.com/cmangos/issues/wiki/realmlist).
+
+4. Start the stack (and tell Docker to build the images):
 
 ```
-$ docker compose -f docker-compose.yml up # Pre-built images
-$ docker compose -f docker-compose-local.yml up --build # Self-built images
+$ docker compose -f docker-compose-local.yml up --build
 ```
 
 ### Running the image stand-alone
@@ -34,7 +54,7 @@ TODO: add cli
 * By default all modules are enabled with the exception of Hardcore mode. All other settings have been left as their defaults.
 * If you have already have a server, you can use your current database with it. 
     * The easiest way is to dump the contents of the database and then add the dumped file to the `sql/` folder using something like `mysqldump -u root -p --all-databases --opt --skip-lock-tables -v --result-file=cmangos.sql`
-    * Alternatively, you can change the connection string in the `etc/` folder.
+    * Alternatively, you can change the connection string in the `etc/` folder to connect to your current database.
 * If using self-built images:
     * The build process will take some time as it must install the required packages and then run make.
     * You will need approx 12GB of free system memory to complete the build process.
