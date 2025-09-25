@@ -1,0 +1,39 @@
+[submodule "mangos-classic"]
+	path = mangos-classic
+	url = https://github.com/BradF-99/mangos-classic.git
+[submodule "modules/immersive"]
+	path = modules/immersive
+	url = https://github.com/davidonete/cmangos-immersive.git
+[submodule "modules/achievements"]
+	path = modules/achievements
+	url = https://github.com/davidonete/cmangos-achievements.git
+[submodule "modules/hardcore"]
+	path = modules/hardcore
+	url = https://github.com/davidonete/cmangos-hardcore.git
+[submodule "modules/transmog"]
+	path = modules/transmog
+	url = https://github.com/davidonete/cmangos-transmog.git
+[submodule "modules/dualspec"]
+	path = modules/dualspec
+	url = https://github.com/davidonete/cmangos-dualspec.git
+[submodule "modules/barber"]
+	path = modules/barber
+	url = https://github.com/celguar/cmangos-barber.git
+[submodule "modules/trainingdummies"]
+	path = modules/trainingdummies
+	url = https://github.com/davidonete/cmangos-trainingdummies.git
+[submodule "modules/balancing"]
+	path = modules/balancing
+	url = https://github.com/davidonete/cmangos-balancing.git
+[submodule "modules/paladinpower"]
+	path = modules/paladinpower
+	url = https://github.com/Redbu11dev/cmangos-paladinpower.git
+[submodule "modules/classless"]
+	path = modules/classless
+	url = https://github.com/davidonete/cmangos-classless.git
+[submodule "modules/voiceover"]
+	path = modules/voiceover
+	url = https://github.com/davidonete/cmangos-voiceover.git
+[submodule "modules/playerbots"]
+	path = modules/playerbots
+	url = https://github.com/cmangos/playerbots.git

@@ -1,0 +1,47 @@
+services:
+  mangosd:
+    image: bradf1/cmangos:latest
+    ports:
+      - 8085:8085
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ./data
+        target: /mangos/bin/data
+      - type: bind
+        source: ./etc
+        target: /mangos/etc
+    tty: true
+    stdin_open: true
+    
+  realmd:
+    image: bradf1/cmangos:latest
+    entrypoint: ['/mangos/bin/realmd']
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ./etc
+        target: /mangos/etc
+      
+  db:
+    hostname: mariadb
+    image: mariadb:lts
+    restart: always
+    volumes:
+      - db-data:/var/lib/mysql
+      - type: bind
+        source: ./sql
+        target: /docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  db-data:
