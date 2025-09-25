@@ -1,12 +1,14 @@
 services:
   mangosd:
-    image: bradf1/cmangos:latest
+    image: ghcr.io/bradf-99/mangos-docker:latest
     ports:
       - 8085:8085
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
     volumes:
+      - logs-data:/logs
       - type: bind
         source: ./data
         target: /mangos/bin/data
@@ -15,33 +17,46 @@ services:
         target: /mangos/etc
     tty: true
     stdin_open: true
-    
+
   realmd:
-    image: bradf1/cmangos:latest
+    image: ghcr.io/bradf-99/mangos-docker:latest
+    ports:
+      - 3724:3724
     entrypoint: ['/mangos/bin/realmd']
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
     volumes:
+      - logs-data:/logs
       - type: bind
         source: ./etc
         target: /mangos/etc
-      
+
   db:
     hostname: mariadb
     image: mariadb:lts
     restart: always
+    environment:
+      MARIADB_USER: mangouser
+      MARIADB_PASSWORD: mangouser
+      MARIADB_RANDOM_ROOT_PASSWORD: 1
+      TZ: UTC/Utc
     volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
       - db-data:/var/lib/mysql
       - type: bind
         source: ./sql
         target: /docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect"]
+#      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "mariadb-admin --user=$${MARIADB_USER} --password=$${MARIADB_PASSWORD} --host=localhost ping"]
       start_period: 30s
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
 volumes:
   db-data:
+  logs-data:
