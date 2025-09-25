@@ -20,6 +20,8 @@ services:
 
   realmd:
     build: ./
+    ports:
+      - 3724:3724
     entrypoint: ['/mangos/bin/realmd']
     depends_on:
       db:
