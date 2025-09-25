@@ -20,7 +20,7 @@ $ git clone https://github.com/BradF-99/cmangos-docker
 
 2. Edit the configuration files in the `etc/` folder to your liking.
 
-3. In `sql/03-insert-realm.sh` change the values to suit your needs. More information on the realm flags, timezone and allowed security level [can be found here](https://github.com/cmangos/issues/wiki/realmlist).
+3. In `sql/03-insert-realm.sql` change the values to suit your needs. More information on the realm flags, timezone and allowed security level [can be found here](https://github.com/cmangos/issues/wiki/realmlist).
 
 4. Start the stack:
 
@@ -37,7 +37,7 @@ $ git clone --recurse-submodules https://github.com/BradF-99/cmangos-docker
 
 2. Edit the configuration files in the `etc/` folder to your liking.
 
-3. In `sql/03-insert-realm.sh` change the values to suit your needs. More information on the realm flags, timezone and allowed security level [can be found here](https://github.com/cmangos/issues/wiki/realmlist).
+3. In `sql/03-insert-realm.sql` change the values to suit your needs. More information on the realm flags, timezone and allowed security level [can be found here](https://github.com/cmangos/issues/wiki/realmlist).
 
 4. Start the stack (and tell Docker to build the images):
 
@@ -56,7 +56,7 @@ TODO: add cli
     * The easiest way is to dump the contents of the database and then add the dumped file to the `sql/` folder using something like `mysqldump -u root -p --all-databases --opt --skip-lock-tables -v --result-file=cmangos.sql`
     * Alternatively, you can change the connection string in the `etc/` folder to connect to your current database.
 * If using self-built images:
-    * The build process will take some time as it must install the required packages and then run make.
+    * The build process will take some time as it must install the required packages and then run make. On my testing virtual machine (8 vCPUs, 16GB RAM) it took 17 minutes to build the image.
     * You will need approx 12GB of free system memory to complete the build process.
 
 # Licence
