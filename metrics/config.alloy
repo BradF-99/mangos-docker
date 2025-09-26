@@ -1,0 +1,82 @@
+// Grafana Cloud Export
+
+prometheus.remote_write "grafanacloud" {
+  endpoint {
+    url = "Get these details from grafana.com"
+
+    basic_auth {
+      username = "Get these details from grafana.com"
+      password = "Get these details from grafana.com"
+    }
+  }
+}
+
+loki.write "grafanacloud" {
+  endpoint {
+    url = "Get these details from grafana.com"
+
+    basic_auth {
+      username = "Get these details from grafana.com"
+      password = "Get these details from grafana.com"
+    }
+  }
+}
+
+// Docker Monitoring
+
+// Metrics
+// Host Cadvisor on the Docker socket to expose container metrics.
+prometheus.exporter.cadvisor "dockermetrics" {
+  docker_only = true
+}
+
+discovery.relabel "dockermetrics" {
+    targets = prometheus.exporter.cadvisor.dockermetrics.targets
+
+    rule {
+        target_label = "job"
+        replacement  = "integrations/docker"
+    }
+
+    rule {
+        target_label = "instance"
+        replacement  = constants.hostname
+    }
+}
+
+// Configure a prometheus.scrape component to collect cadvisor metrics.
+prometheus.scrape "scraper" {
+  targets    = discovery.relabel.dockermetrics.output
+  forward_to = [ prometheus.remote_write.grafanacloud.receiver ]
+
+  scrape_interval = "10s"
+}
+
+// Logs
+discovery.docker "linux" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Define a relabeling rule to create a service name from the container name.
+discovery.relabel "logs_integrations_docker" {
+      targets = []
+
+      rule {
+          source_labels = ["__meta_docker_container_name"]
+          regex = "/(.*)"
+          target_label = "container_name"
+      }
+
+     rule {
+        target_label = "instance"
+        replacement  = constants.hostname
+    }
+  }
+
+// Configure a loki.source.docker component to collect logs from Docker containers.
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.linux.targets
+  relabel_rules = discovery.relabel.logs_integrations_docker.rules
+  forward_to = [loki.write.grafanacloud.receiver]
+}

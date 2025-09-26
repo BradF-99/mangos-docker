@@ -57,6 +57,23 @@ services:
       timeout: 10s
       retries: 10
 
+  # alloy:
+  #  image: grafana/alloy:v1.10.2
+  #  privileged: true
+  #  ports:
+  #    - 12345:12345
+  #    - 4317:4317
+  #    - 4318:4318
+  #  volumes:
+  #    - ./metrics/config.alloy:/etc/alloy/config.alloy
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #    - /:/rootfs:ro
+  #    - /var/run:/var/run:rw
+  #    - /sys:/sys:ro
+  #    - /var/lib/docker/:/var/lib/docker:ro
+  #    - /dev/disk/:/dev/disk:ro
+  #  command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+
 volumes:
   db-data:
   logs-data:
