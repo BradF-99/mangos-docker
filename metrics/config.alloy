@@ -80,3 +80,11 @@ loki.source.docker "default" {
   relabel_rules = discovery.relabel.logs_integrations_docker.rules
   forward_to = [loki.write.grafanacloud.receiver]
 }
+
+// CMaNGOS Metrics
+prometheus.scrape "influxexporter" {
+  targets = [ {"__address__" = "influxdbexporter:9122"} ]
+
+  forward_to = [ prometheus.remote_write.grafanacloud.receiver ]
+  scrape_interval = "10s"
+}

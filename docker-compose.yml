@@ -22,7 +22,7 @@ services:
     image: ghcr.io/bradf-99/mangos-docker:latest
     ports:
       - 3724:3724
-    entrypoint: ['/mangos/bin/realmd']
+    entrypoint: ["/mangos/bin/realmd"]
     depends_on:
       db:
         condition: service_healthy
@@ -50,29 +50,38 @@ services:
         source: ./sql
         target: /docker-entrypoint-initdb.d
     healthcheck:
-#      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      test: ["CMD-SHELL", "mariadb-admin --user=$${MARIADB_USER} --password=$${MARIADB_PASSWORD} --host=localhost ping"]
+      #      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test:
+        [
+          "CMD-SHELL",
+          "mariadb-admin --user=$${MARIADB_USER} --password=$${MARIADB_PASSWORD} --host=localhost ping",
+        ]
       start_period: 30s
       interval: 30s
       timeout: 10s
       retries: 10
 
   # alloy:
-  #  image: grafana/alloy:v1.10.2
-  #  privileged: true
-  #  ports:
-  #    - 12345:12345
-  #    - 4317:4317
-  #    - 4318:4318
-  #  volumes:
-  #    - ./metrics/config.alloy:/etc/alloy/config.alloy
-  #    - /var/run/docker.sock:/var/run/docker.sock
-  #    - /:/rootfs:ro
-  #    - /var/run:/var/run:rw
-  #    - /sys:/sys:ro
-  #    - /var/lib/docker/:/var/lib/docker:ro
-  #    - /dev/disk/:/dev/disk:ro
-  #  command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+  #   image: grafana/alloy:v1.10.2
+  #   privileged: true
+  #   ports:
+  #     - 12345:12345
+  #     - 4317:4317
+  #     - 4318:4318
+  #   volumes:
+  #     - ./metrics/config.alloy:/etc/alloy/config.alloy
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /dev/disk/:/dev/disk:ro
+  #   command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+
+  # influxdb-exporter:
+  #   hostname: influxdbexporter
+  #   image: prom/influxdb-exporter:v0.12.0
+  #   restart: unless-stopped
 
 volumes:
   db-data:

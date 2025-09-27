@@ -2,7 +2,7 @@
 
 This repository contains a Docker image that builds and runs the CMaNGOS Classic Core as well as Compose definitions to easily spin up a CMaNGOS instance. The image contains the `mangosd` and `realmd` executables and is designed to be used in a Docker Compose stack. It also includes every module available for the classic core.
 
-## Usage
+## Getting Started
 
 ### Pre-requisites
 
@@ -55,7 +55,7 @@ $ docker compose -f docker-compose-local.yml up --build
 As above, the initial boot will take a while (even more so because Docker has to build the image) so enjoy your cup of tea / coffee and don't rush.
 
 ### Running the image stand-alone
-Alternatively if you don't wish to use Docker Compose the image can be run on it's own. Bear in mind you will need to run at least two instances (one for `realmd` and one for `mangosd`), and will have to mount the `etc/` and `data/` folders. Depending on how you set up your database (container or running on host / other machine) you'll need to modify the  `mangosd.conf` and `realmd.conf` files in `etc/`.
+Alternatively if you don't wish to use Docker Compose the image can be run on it's own. Bear in mind you will need to run at least two instances (one for `realmd` and one for `mangosd`), and will have to mount the `etc/` and `data/` folders. Depending on how you set up your database (container or running on host / other machine) you'll need to modify the  `mangosd.conf` and `realmd.conf` files in `etc/`. You may want to do this if you wish to run a stand-alone realm on another machine, for example.
 
 ```sh
 $ docker run -v ./etc:/mangos/etc -v ./data:/mangos/bin/data -p 8085:8085 ghcr.io/bradf-99/mangos-docker:latest
@@ -66,7 +66,7 @@ $ docker run -v ./etc:/mangos/etc -p 3724:3724 --entrypoint /mangos/bin/realmd g
 ### Notes
 * By default all modules are enabled with the exception of Hardcore mode. All other settings have been left as their defaults.
 * If you have already have a server, you can use your current database with it. 
-    * The easiest way is to dump the contents of the database and then add the dumped file to the `sql/` folder using something like `mysqldump -u root -p --all-databases --opt --skip-lock-tables -v --result-file=cmangos.sql`
+    * The easiest way is to dump the contents of the database and then add the dumped file to the `sql/` folder using something like `mysqldump -u root -p --databases classiccharacters classiclogs classicmangos classicrealmd --opt --skip-lock-tables -v --result-file=cmangos.sql`. Don't forget to remove the existing SQL script `01-alldb-modules.sql.xz` and remember that MariaDB executes SQL init scripts in alphabetical order.
     * Alternatively, you can change the connection string in the `etc/` folder to connect to your current database.
 * If using self-built images:
     * The build process will take some time as it must install the required packages and then run make. On my testing virtual machine (8 vCPUs, 16GB RAM) it took 17 minutes to build the image. The GitHub Action to build the image takes around 22 minutes.
@@ -83,8 +83,53 @@ VALUES
     ('4', 'RP PvP Realm', '73.21.37.73', '8088', '8', '0', '3', '0');
 ```
 
-* Do not expose the database to the internet (you shouldn't need to anyway). If you do need to, your use cases are likely more advanced and you know the steps to take in order to safely do so (but really think if you need to do this or not).
+* Do not expose the database to the internet. (you shouldn't need to anyway). If you do need to, your use cases are likely more advanced and you know the steps to take in order to safely do so (but really think if you need to do this or not).
     * If you wish to run realms on separate machines, try using a WireGuard link between the machines that need to connect to the database so it is never exposed directly to the internet. (This is not security advice.)
+
+## Metrics
+
+CMaNGOS exposes metrics in the form of the InfluxDB line protocol. The Compose stack includes the necessary containers to export these metrics to a Grafana Cloud instance. Additionally, Docker metrics and logs are also exported to Prometheus and Loki respectively.
+
+To use metrics with Grafana Cloud, do the following:
+
+1. If you do not have a Grafana Cloud instance, [create one here](https://grafana.com/products/cloud/) (the free plan should be more than enough).
+2. Go to the [My Account section on Grafana.com](https://grafana.com/auth/sign-in/). Once here, select your Grafana Cloud instance on the sidebar on the left. It should bring you to the "Manage your stack" page.
+3. In the Prometheus section, click the blue "Send Metrics" button. Scroll down until you see the "Grafana Data Source settings" section.
+4. Click the "Generate now" text next to the Password entry. Give your token a name and click "Create token". Make a note of this token as we will need to add it to our Alloy configuration.
+5. Add the details from the Grafana Data Source section to the `prometheus.remote_write "grafanacloud"` section of the `metrics/config.alloy` file, changing the `url`, `username` and `password` fields. Once complete it should look something like this:
+```
+prometheus.remote_write "grafanacloud" {
+  endpoint {
+    url = "https://prometheus-prod-73-prod-au-southeast-1.grafana.net/api/prom/push"
+
+    basic_auth {
+      username = "1234567"
+      password = "glc_somelonggrafana.comapitokenhere"
+    }
+  }
+}
+```
+6. Return to the "Manage your stack" page and in click the blue "Send Logs" button in the Loki section.
+7. Add the details from the Grafana Data Source settings section to the `loki.write "grafanacloud"` section of the `metrics/config.alloy` file, changing the `url`, `username` and `password` fields. Note that the username for Prometheus and Loki will be different, but the password will be the same. Once complete it should look something like this:
+```
+loki.write "grafanacloud" {
+  endpoint {
+    url = "https://logs-prod-073.grafana.net/loki/api/v1/push"
+
+    basic_auth {
+      username = "7654321"
+      password = "glc_somelonggrafana.comapitokenhere"
+    }
+  }
+}
+
+```
+8. In `etc/mangosd.conf` change `Metric.Enable = 0` to `Metric.Enable = 1`. No other settings need to be changed.
+9. In your Compose stack YAML definition, un-comment out the `alloy` and `influxdb-exporter` sections.
+10. Start the stack back up.
+11. Visit the Drilldown or Explore pages in Grafana Cloud to ensure logs and metrics are propagating to Grafana Cloud.
+
+Please note that you do not have to use Grafana Cloud - you can modify the configuration in `metrics/config.alloy` to export to your own Prometheus and Loki servers.
 
 ## Contributions
 Contributions are most welcome. To make a change, please fork the repository, make your changes and then create a PR targeting the master branch of this repository, adding myself as a reviewer.
@@ -93,7 +138,6 @@ Contributions are most welcome. To make a change, please fork the repository, ma
 * Fix the stupid health check for the database
 * Could make a separate image that builds the database using classic-db at runtime instead of having to dump the entirety from a pre-configured database?
 * Trigger the GitHub Action when an upstream commit from the mangos-classic module is pushed
-* Add InfluxDB and Grafana Alloy to the stack to export metrics to Grafana Cloud
 
 ## Licence
 
